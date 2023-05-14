@@ -1,0 +1,214 @@
+---
+# tasks file for ansible-role-apache-guacamole
+- name: Update package cache
+  vars:
+    ansible_become: true
+  ansible.builtin.include_tasks:
+    file: update-package-cache.yml
+
+- name: Install nano & pip
+  become: true
+  ansible.builtin.package:
+    state: present
+    name: "{{ item }}"
+  with_items:
+    - nano
+    - python3-pip
+
+- name: Install Docker SDK for Python
+  become: true
+  ansible.builtin.pip:
+    name:
+      - docker
+      - docker-compose
+    executable: pip3
+
+- name: List all the services running on the server
+  ansible.builtin.service_facts:
+
+- name: Install Docker
+  block:
+    - name: Install Docker from script
+      ansible.builtin.shell: "curl -fsSL https://get.docker.com | sh"
+  rescue:
+    - name: Add Docker repo for Almalinux or Rocky linux
+      ansible.builtin.command: sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+    - name: Install Docker and Docker Compose plugin for Almalinux or Rocky linux
+      dnf:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+        - docker-compose-plugin
+  when: ansible_facts.services['docker.service'] is not defined
+
+- name: Add default user to docker group
+  become: true
+  ansible.builtin.user:
+    name: "{{ default_user }}"
+    groups:
+      - docker
+    append: yes
+    state: present
+
+- name: Start and enable Docker service
+  become: true
+  ansible.builtin.systemd:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Create Guacamole and HAproxy directories
+  become: true
+  ansible.builtin.file:
+    path: "{{ installation_path }}/{{ item }}"
+    state: directory
+    recurse: true
+    owner: "{{ default_user }}"
+  loop:
+    - guacamole
+    - haproxy
+
+- name: Upload HAproxy and Guacamole docker-compose.yml files
+  ansible.builtin.template:
+    src: "{{ item }}_dockercompose.j2"
+    dest: "{{ installation_path }}/{{ item }}/docker-compose.yml"
+  loop:
+    - guacamole
+    - haproxy
+
+- name: Set Guacamole environment variables
+  ansible.builtin.copy:
+    dest: "{{ installation_path }}/guacamole/.env"
+    content: |
+      POSTGRES_PASSWORD={{ postgres_password }}
+      POSTGRES_USER={{ postgres_user }}
+
+- name: Create Guacamole init directory
+  ansible.builtin.file:
+    path: "{{ installation_path  }}/guacamole/init"
+    state: directory
+    mode: '0755'
+    recurse: yes
+    owner: "{{ default_user }}"
+
+- name: Create HAProxy configuration file
+  ansible.builtin.template:
+    src: haproxy.cfg
+    dest: "{{ installation_path }}/haproxy/haproxy.cfg"
+
+- name: Init Guacamole database
+  become: true
+  community.docker.docker_container:
+    name: "{{ lookup('community.general.random_string', upper=false, numbers=false, special=false) }}"
+    image: guacamole/guacamole
+    auto_remove: true
+    command: ["/bin/sh", "-c", "test -e /initdb/initdb.sql && echo 'init file already exists' || /opt/guacamole/bin/initdb.sh --postgres > /initdb/initdb.sql"]
+    volumes:
+      - "{{ installation_path }}/guacamole/init:/initdb"
+    user: "{{ ansible_user_uid }}:{{ ansible_user_gid }}"
+
+- name: Create HAproxy certs folder
+  ansible.builtin.file:
+    path: "{{ installation_path }}/haproxy/certs"
+    state: directory
+    recurse: yes
+    owner: "{{ default_user }}"
+
+- name: Generate self-signed SSL certificate
+  vars:
+    ssl_subject: "/CN={{ FQDN }}"
+  block:
+    - name: Set HAProxy environment variables
+      ansible.builtin.copy:
+        dest: "{{ installation_path }}/haproxy/.env"
+        content: "ENDPOINT={{ FQDN }}"
+    - name: Install cryptography package
+      ansible.builtin.pip:
+        name:
+          - cryptography>=1.6
+    - name: Create private key
+      community.crypto.openssl_privatekey:
+        size: 2048
+        path: /tmp/ssl.key
+        state: present
+        return_content: true
+      register: private_key
+    - name: Create CSR
+      openssl_csr:
+        common_name: "{{ ssl_subject }}"
+        path: /tmp/ssl.csr
+        privatekey_path: /tmp/ssl.key
+      register: csr
+    - name: Generate self-signed certificate
+      openssl_certificate:
+        path: /tmp/ssl.crt
+        privatekey_path: /tmp/ssl.key
+        csr_path: /tmp/ssl.csr
+        provider: selfsigned
+        return_content: true
+        state: present
+      register: certificate
+    - name: Concatenate private key and certificate
+      copy:
+        dest: "{{ installation_path }}/haproxy/certs/{{ FQDN }}.pem"
+        content: |
+          {{ certificate.certificate }}
+          {{ private_key.privatekey }}
+  when:
+    - FQDN is defined
+
+- name: Determine public IP 
+  block:
+    - name: upload publicip.sh script
+      ansible.builtin.template:
+        src: publicip.sh.j2
+        dest: "{{ installation_path }}/publicip.sh"
+        mode: 0755
+    - name: execute publicip.sh script
+      ansible.builtin.command: bash {{ installation_path }}/publicip.sh
+  when:
+    - FQDN is not defined
+
+- name: Make the default user the owner of installation path
+  ansible.builtin.file:
+    path: "{{ installation_path }}"
+    recurse: yes
+    owner: "{{ default_user }}"
+
+- name: Create and start HAproxy stack
+  become: true
+  vars:
+    ansible_python_interpreter: '/usr/bin/python3'
+  community.docker.docker_compose:
+    project_src: "{{ installation_path }}/haproxy"
+  register: output
+
+- name: Assert that HAproxy container is running
+  ansible.builtin.assert:
+    that:
+      - "output.services.haproxy.haproxy.state.running"
+
+- name: Create and start Guacamole stack
+  become: true
+  community.docker.docker_compose:
+    project_src: "{{ installation_path }}/guacamole"
+  register: output
+- name: Assert that Guacamole containers are running
+  ansible.builtin.assert:
+    that:
+      - "output.services.guacamole.guacamole_frontend.state.running"
+      - "output.services.guacd.guacamole_backend.state.running"
+      - "output.services.postgres.guacamole_database.state.running"
+
+- name: Get the endpoint
+  slurp:
+    src: "{{ installation_path }}/haproxy/.env"
+  register: endpoint
+
+- name: Display success message
+  ansible.builtin.debug:
+    msg:
+      - "your Guacamole is at https://{{ endpoint.content | b64decode | replace('ENDPOINT=','') | replace('\n','')}}/guacamole"

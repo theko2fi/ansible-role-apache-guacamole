@@ -1,0 +1,16 @@
+---
+# defaults file for ansible-apache-guacamole
+default_user: "{{ ansible_user }}"
+installation_path: "{{ ansible_env.HOME }}/docker-stack"
+dockercompose_version: '3.9'
+postgres_user: "guacamole_db_user"
+postgres_password: "gcZYye@7U89JF%"
+# define haproxy docker container version
+haproxy_version: "2.4"
+
+# define postgres docker container version
+postgres_version: "15.0"
+
+# define guacamole containers version
+guacamole_backend_version: "1.5.0"
+guacamole_frontend_version: "1.5.0"

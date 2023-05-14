@@ -1,0 +1,30 @@
+version: '{{ dockercompose_version }}'
+services:
+  haproxy:
+    container_name: haproxy
+    image: haproxytech/haproxy-alpine:{{ haproxy_version }}
+    ports:
+      - 80:80
+      - 443:443
+      - 8404:8404
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - ./certs:/usr/local/etc/haproxy/certs/
+    networks:
+      - haproxy_net
+    restart: always
+    environment:
+      ENDPOINT: '${ENDPOINT}'
+{% if fqdn is not defined %}
+  reverse-proxy-https-helper:
+    image: alpine
+    command: sh -c "cd /etc/ssl/traefik
+      && wget traefik.me/cert.pem -O - >> traefik.me.pem
+      && wget traefik.me/privkey.pem -O - >> traefik.me.pem"
+    volumes:
+      - ./certs:/etc/ssl/traefik
+{% endif %}
+networks:
+  haproxy_net:
+    name: haproxy_net
+    driver: bridge
