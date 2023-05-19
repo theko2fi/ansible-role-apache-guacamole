@@ -222,4 +222,4 @@
 - name: Display success message
   ansible.builtin.debug:
     msg:
-      - "your Guacamole is at https://{{ endpoint.content | b64decode | replace('ENDPOINT=','') | replace('\n','')}}/guacamole"
+      - "Your Guacamole instance is accessible at https://{{ endpoint.content | b64decode | replace('ENDPOINT=','') | replace('\n','')}}/guacamole"
