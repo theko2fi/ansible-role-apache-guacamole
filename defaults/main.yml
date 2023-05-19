@@ -1,6 +1,6 @@
 ---
 # defaults file for ansible-apache-guacamole
-default_user: "{{ ansible_user }}"
+default_user: "{{ ansible_user_id }}"
 installation_path: "{{ ansible_env.HOME }}/docker-stack"
 dockercompose_version: '3.9'
 postgres_user: "guacamole_db_user"
