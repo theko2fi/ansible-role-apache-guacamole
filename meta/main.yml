@@ -3,12 +3,15 @@ galaxy_info:
   description: Ansible role to deploy Apache Guacamole with Docker 
   license: license (BSD, MIT)
   min_ansible_version: '2.10'
+  role_name: apache_guacamole
+  namespace: theko2fi
   platforms:
     - name: Ubuntu
       versions:
         - 22.10
         - 22.04
         - 20.04
+        - 18.04
     - name: RockyLinux
       versions:
         - 8.0
