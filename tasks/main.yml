@@ -11,6 +11,7 @@
   ansible.builtin.package:
     state: present
     name: "{{ item }}"
+    
   with_items:
     - nano
     - python3-pip
@@ -55,7 +56,7 @@
 
 - name: Start and enable Docker service
   become: true
-  ansible.builtin.systemd:
+  ansible.builtin.service:
     name: docker
     state: started
     enabled: true
@@ -101,6 +102,8 @@
 
 - name: Init Guacamole database
   become: true
+  vars:
+    ansible_python_interpreter: '/usr/bin/python3'
   community.docker.docker_container:
     name: "{{ lookup('community.general.random_string', upper=false, numbers=false, special=false) }}"
     image: guacamole/guacamole
@@ -167,6 +170,11 @@
         src: publicip.sh.j2
         dest: "{{ installation_path }}/publicip.sh"
         mode: 0755
+    - name: install iproute2
+      when: ansible_virtualization_type == 'docker'
+      ansible.builtin.package:
+        name: iproute2
+        state: present
     - name: execute publicip.sh script
       ansible.builtin.command: bash {{ installation_path }}/publicip.sh
   when:
@@ -193,9 +201,12 @@
 
 - name: Create and start Guacamole stack
   become: true
+  vars:
+    ansible_python_interpreter: '/usr/bin/python3'
   community.docker.docker_compose:
     project_src: "{{ installation_path }}/guacamole"
   register: output
+
 - name: Assert that Guacamole containers are running
   ansible.builtin.assert:
     that:
