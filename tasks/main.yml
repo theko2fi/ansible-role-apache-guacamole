@@ -156,7 +156,7 @@
       register: certificate
     - name: Concatenate private key and certificate
       copy:
-        dest: "{{ installation_path }}/haproxy/certs/{{ FQDN }}.pem"
+        dest: "{{ installation_path }}/haproxy/certs/{{ fqdn}}.pem"
         content: |
           {{ certificate.certificate }}
           {{ private_key.privatekey }}
