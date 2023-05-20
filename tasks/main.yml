@@ -22,6 +22,7 @@
     name:
       - docker
       - docker-compose
+      - jq
     executable: pip3
 
 - name: List all the services running on the server
