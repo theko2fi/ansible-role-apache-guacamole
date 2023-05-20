@@ -11,10 +11,10 @@
   ansible.builtin.package:
     state: present
     name: "{{ item }}"
-    
   with_items:
     - nano
     - python3-pip
+    - jq
 
 - name: Install Docker SDK for Python
   become: true
@@ -22,13 +22,13 @@
     name:
       - docker
       - docker-compose
-      - jq
     executable: pip3
 
 - name: List all the services running on the server
   ansible.builtin.service_facts:
 
 - name: Install Docker
+  when: ansible_facts.services['docker.service'] is not defined
   block:
     - name: Install Docker from script
       ansible.builtin.shell: "curl -fsSL https://get.docker.com | sh"
@@ -36,15 +36,14 @@
     - name: Add Docker repo for Almalinux or Rocky linux
       ansible.builtin.command: sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
     - name: Install Docker and Docker Compose plugin for Almalinux or Rocky linux
-      dnf:
+      ansible.builtin.dnf:
         name: "{{ item }}"
         state: present
       loop:
         - docker-ce
         - docker-ce-cli
         - containerd.io
-        - docker-compose-plugin
-  when: ansible_facts.services['docker.service'] is not defined
+        - docker-compose-plugin  
 
 - name: Add default user to docker group
   become: true
@@ -171,9 +170,6 @@
         src: publicip.sh.j2
         dest: "{{ installation_path }}/publicip.sh"
         mode: 0755
-      ansible.builtin.package:
-        name: iproute2
-        state: present
     - name: execute publicip.sh script
       ansible.builtin.command: bash {{ installation_path }}/publicip.sh
   when:
