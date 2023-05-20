@@ -170,8 +170,6 @@
         src: publicip.sh.j2
         dest: "{{ installation_path }}/publicip.sh"
         mode: 0755
-    - name: install iproute2
-      when: ansible_virtualization_type == 'docker'
       ansible.builtin.package:
         name: iproute2
         state: present
