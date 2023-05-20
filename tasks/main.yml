@@ -122,12 +122,12 @@
 
 - name: Generate self-signed SSL certificate
   vars:
-    ssl_subject: "/CN={{ FQDN }}"
+    ssl_subject: "/CN={{ fqdn }}"
   block:
     - name: Set HAProxy environment variables
       ansible.builtin.copy:
         dest: "{{ installation_path }}/haproxy/.env"
-        content: "ENDPOINT={{ FQDN }}"
+        content: "ENDPOINT={{ fqdn }}"
     - name: Install cryptography package
       ansible.builtin.pip:
         name:
@@ -161,7 +161,7 @@
           {{ certificate.certificate }}
           {{ private_key.privatekey }}
   when:
-    - FQDN is defined
+    - fqdn is defined
 
 - name: Determine public IP 
   block:
@@ -176,7 +176,7 @@
     - name: execute publicip.sh script
       ansible.builtin.command: bash {{ installation_path }}/publicip.sh
   when:
-    - FQDN is not defined
+    - fqdn is not defined
 
 - name: Make the default user the owner of installation path
   ansible.builtin.file:
