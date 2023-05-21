@@ -49,7 +49,6 @@
         - docker-ce-cli
         - containerd.io
         - docker-compose-plugin
-  when: ansible_facts.services['docker.service'] is not defined
   
 - name: Create docker group
   ansible.builtin.group:
