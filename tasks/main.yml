@@ -30,8 +30,13 @@
 - name: Install Docker
   when: ansible_facts.services['docker.service'] is not defined
   block:
+    - name: Download Docker installation script
+      ansible.builtin.get_url:
+        url: https://get.docker.com
+        dest: /tmp/docker-script.sh
+        mode: '0755'
     - name: Install Docker from script
-      ansible.builtin.shell: "curl -fsSL https://get.docker.com | sh"
+      ansible.builtin.shell: "sh /tmp/docker-script.sh"
   rescue:
     - name: Add Docker repo for Almalinux or Rocky linux
       ansible.builtin.command: sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
@@ -43,7 +48,13 @@
         - docker-ce
         - docker-ce-cli
         - containerd.io
-        - docker-compose-plugin  
+        - docker-compose-plugin
+  when: ansible_facts.services['docker.service'] is not defined
+  
+- name: Create docker group
+  ansible.builtin.group:
+    name: docker
+    state: present
 
 - name: Add default user to docker group
   become: true
@@ -56,7 +67,7 @@
 
 - name: Start and enable Docker service
   become: true
-  ansible.builtin.service:
+  ansible.builtin.systemd:
     name: docker
     state: started
     enabled: true
