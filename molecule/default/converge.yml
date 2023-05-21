@@ -1,0 +1,5 @@
+---
+- name: Converge
+  hosts: all
+  roles:
+    - theko2fi.apache_guacamole
