@@ -16,9 +16,14 @@ galaxy_info:
       versions:
         - 8.0
         - 9.0
-    - name: Almalinux
+    - name: fedora
       versions:
-        - 8.0
+        - 38
+        - 37
+    - name: Debian
+      versions:
+        - 11
+        - 10
   galaxy_tags:
     - apacheguacamole
     - guacamole
