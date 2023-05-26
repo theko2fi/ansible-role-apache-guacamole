@@ -59,6 +59,9 @@ The example below will deploy Apache Guacamole and make it available at `https:/
       become: true
       roles:
          - theko2fi.apache_guacamole
+Demo
+----
+![demo](https://github.com/theko2fi/ansible-role-apache-guacamole/assets/72862222/81b45598-dab6-48e9-81b7-66c5f88e85e2)
 
 License
 -------
