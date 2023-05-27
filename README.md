@@ -1,7 +1,9 @@
 Ansible Role: Apache Guacamole
 ==============================
 
-An ansible role to deploy ![Apache Guacamole](https://guacamole.apache.org/) with Docker and HAProxy as reverse proxy.
+An ansible role to deploy [Apache Guacamole](https://guacamole.apache.org/) with Docker and HAProxy as reverse proxy.
+
+![](architecture.png)
 
 Role Variables
 --------------
@@ -24,8 +26,8 @@ postgres_version: "15.0"
 guacamole_backend_version: "1.5.0"
 guacamole_frontend_version: "1.5.0"
 ```
-where 
-- `fqdn` is the Fully Qualified Domain Name you want to make your instance available. For example `guacamole.company.com`
+Where:
+- `fqdn`(optional) is the Fully Qualified Domain Name you want to make your instance available at. For example `guacamole.company.com`
 - `default_user` is the user who will perform the installation
 - `installation_path` is the target directory to put all the required files
 - `dockercompose_version` is the docker-compose.yml file version
@@ -63,8 +65,8 @@ The example below will deploy Apache Guacamole and make it available at `https:/
 License
 -------
 
-MIT
-BSD
+- MIT
+- BSD
 
 Contributing
 ------------
