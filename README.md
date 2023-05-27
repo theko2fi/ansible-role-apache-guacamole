@@ -62,6 +62,10 @@ The example below will deploy Apache Guacamole and make it available at `https:/
       roles:
          - theko2fi.apache_guacamole
 
+Demo
+----
+![demo](./demo.svg)
+
 License
 -------
 
