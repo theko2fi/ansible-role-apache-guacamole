@@ -41,7 +41,7 @@ jobs:
       - name: Run Molecule tests
         run: |
           cd theko2fi.apache_guacamole
-          molecule test
+          molecule test -s default
         env:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'

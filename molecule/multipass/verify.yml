@@ -1,0 +1,23 @@
+---
+# This is an example playbook to execute Ansible tests.
+
+- name: Verify
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Login to guacamole
+      ansible.builtin.uri:
+        url: https://guacamole.traefik.me/guacamole/api/tokens
+        method: POST
+        body_format: "form-urlencoded"
+        body:
+          username: guacadmin
+          password: guacadmin
+        validate_certs: false
+        status_code: 200
+      register: login
+
+    - name: Debug
+      ansible.builtin.debug:
+        var: login

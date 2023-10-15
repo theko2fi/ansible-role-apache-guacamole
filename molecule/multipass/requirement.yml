@@ -1,0 +1,7 @@
+collections:
+  - name: theko2fi.multipass
+    version: ">=0.2.0"
+  - community.docker
+  - name: community.general
+    version: ">=6.5.0"
+  - community.crypto
