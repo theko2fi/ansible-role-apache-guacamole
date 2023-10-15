@@ -19,3 +19,4 @@ jobs:
         uses: robertdebock/galaxy-action@1.2.0
         with:
           api_key: '${{ secrets.galaxi_api_key }}'
+          git_branch: main
