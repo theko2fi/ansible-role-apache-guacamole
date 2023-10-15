@@ -1,0 +1,5 @@
+collections:
+  - community.docker
+  - name: community.general
+    version: ">=6.5.0"
+  - community.crypto

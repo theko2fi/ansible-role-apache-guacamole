@@ -23,8 +23,8 @@ haproxy_version: "2.4"
 postgres_version: "15.0"
 
 # define guacamole containers version
-guacamole_backend_version: "1.5.0"
-guacamole_frontend_version: "1.5.0"
+guacamole_backend_version: "1.5.3"
+guacamole_frontend_version: "1.5.3"
 ```
 Where:
 - `fqdn`(optional) is the Fully Qualified Domain Name you want to make your instance available at. For example `guacamole.company.com`
@@ -40,8 +40,11 @@ Where:
 
 Dependencies
 ------------
-This role requires the following Ansible collection:
+This role requires the following Ansible collection to be present on the node controller:
+- community.docker
 - community.general >= 6.5.0
+- community.crypto
+
 
 Example Playbook
 ----------------

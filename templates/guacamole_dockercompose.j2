@@ -36,17 +36,17 @@ services:
   # guacamole
   guacamole:
     container_name: guacamole_frontend
+    image: guacamole/guacamole:{{ guacamole_frontend_version }}
     depends_on:
     - guacd
     - postgres
     environment:
       GUACD_HOSTNAME: guacd
-      POSTGRES_DATABASE: guacamole_db
-      POSTGRES_HOSTNAME: postgres
-      POSTGRES_PASSWORD: '${POSTGRES_PASSWORD}'
-      POSTGRES_USER: '${POSTGRES_USER}'
+      POSTGRESQL_DATABASE: guacamole_db
+      POSTGRESQL_HOSTNAME: postgres
+      POSTGRESQL_PASSWORD: '${POSTGRES_PASSWORD}'
+      POSTGRESQL_USER: '${POSTGRES_USER}'
       POSTGRESQL_AUTO_CREATE_ACCOUNTS: 'true'
-    image: guacamole/guacamole:{{ guacamole_frontend_version }}
     links:
     - guacd
     networks:

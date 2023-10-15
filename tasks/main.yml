@@ -116,9 +116,9 @@
     ansible_python_interpreter: '/usr/bin/python3'
   community.docker.docker_container:
     name: "{{ lookup('community.general.random_string', upper=false, numbers=false, special=false) }}"
-    image: guacamole/guacamole
+    image: "guacamole/guacamole:{{ guacamole_frontend_version }}"
     auto_remove: true
-    command: ["/bin/sh", "-c", "test -e /initdb/initdb.sql && echo 'init file already exists' || /opt/guacamole/bin/initdb.sh --postgres > /initdb/initdb.sql"]
+    command: ["/bin/sh", "-c", "test -e /initdb/initdb.sql && echo 'init file already exists' || /opt/guacamole/bin/initdb.sh --postgresql > /initdb/initdb.sql"]
     volumes:
       - "{{ installation_path }}/guacamole/init:/initdb"
     user: "{{ ansible_user_uid }}:{{ ansible_user_gid }}"
